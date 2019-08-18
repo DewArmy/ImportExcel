@@ -1,44 +1,46 @@
 Function Get-ExcelSheetInfo {
     <#
-    .SYNOPSIS
+      .SYNOPSIS
         Get worksheet names and their indices of an Excel workbook.
-
-    .DESCRIPTION
+      .DESCRIPTION
         The Get-ExcelSheetInfo cmdlet gets worksheet names and their indices of an Excel workbook.
-
-    .PARAMETER Path
+      .PARAMETER Path
         Specifies the path to the Excel file. This parameter is required.
-
-    .EXAMPLE
+      .EXAMPLE
         Get-ExcelSheetInfo .\Test.xlsx
 
-    .NOTES
+      .NOTES
         CHANGELOG
         2016/01/07 Added Created by Johan Akerstrom (https://github.com/CosmosKey)
 
-    .LINK
+      .LINK
         https://github.com/dfinke/ImportExcel
-
     #>
 
     [CmdletBinding()]
     param(
-        [Alias("FullName")]
+        [Alias('FullName')]
         [Parameter(ValueFromPipelineByPropertyName=$true, ValueFromPipeline=$true, Mandatory=$true)]
         $Path
     )
     process {
         $Path = (Resolve-Path $Path).ProviderPath
-        write-debug "target excel file $Path"
-        $stream = New-Object -TypeName System.IO.FileStream -ArgumentList $Path,"Open","Read","ReadWrite"
+
+        $stream = New-Object -TypeName System.IO.FileStream -ArgumentList $Path,'Open','Read','ReadWrite'
         $xl = New-Object -TypeName OfficeOpenXml.ExcelPackage -ArgumentList $stream
         $workbook  = $xl.Workbook
-        if($workbook -and $workbook.Worksheets) {
+
+        if ($workbook -and $workbook.Worksheets) {
             $workbook.Worksheets |
                 Select-Object -Property name,index,hidden,@{
-                    Label = "Path"
+                    Label = 'Path'
                     Expression = {$Path}
                 }
         }
+
+        $stream.Close()
+        $stream.Dispose()
+        $xl.Dispose()
+        $xl = $null
     }
 }
